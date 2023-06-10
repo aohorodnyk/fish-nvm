@@ -1,15 +1,29 @@
-function nvm
+## NVMrc Settings
+if status is-interactive
+  test -z $nvmrc_enable
+  and set -g nvmrc_enable "yes"
+
+  test -z $nvmrc_announce
+  and set -g nvmrc_announce "yes"
+end
+
+function __nvm
   bass source ~/.nvm/nvm.sh --no-use ';' nvm $argv
 end
 
-function nvm_find_nvmrc
+function __nvm_find_nvmrc
   bass source ~/.nvm/nvm.sh --no-use ';' nvm_find_nvmrc $argv
 end
 
 # Apply applyNvmRcUse settings.
 function applyNvmRcUse
+  # Check for the enable flag and make sure we're running interactive, if not return.
+  if test $nvmrc_enable != 'yes'; or not status is-interactive
+    return
+  end
+
   # Find nvmrc file location using builtin nvm_find_nvmrc command.
-  set -l __nvmrc_file (nvm_find_nvmrc)
+  set -l __nvmrc_file (__nvm_find_nvmrc)
 
   # Check if nvmrc file not found.
   if test -z $__nvmrc_file
@@ -17,9 +31,13 @@ function applyNvmRcUse
     if test $nvmrc_applied != "N/A"
       # nvmrc was applied, but no nvmrc file found.
       # Unload nvm.
-      nvm unload
+      __nvm unload
       set -g nvmrc_applied "N/A"
       set -g nvmrc_node_version "N/A"
+
+      if test $nvmrc_announce = "yes"
+        echo "nvmrc: Unloaded nvm."
+      end
     end
 
     return
@@ -36,7 +54,11 @@ function applyNvmRcUse
   if test $__nvmrc_node_version = "N/A"
     # nvmrc file specifies a version that nvm does not have installed.
     # Install the version.
-    nvm install
+    __nvm install
+
+    if test $nvmrc_announce = "yes"
+      echo "nvmrc: Installed node version " (cat $__nvmrc_file)
+    end
   else if test $__nvmrc_node_version = $nvmrc_node_version
     # nvmrc file specifies the same version that is already in use.
     return
@@ -45,12 +67,16 @@ function applyNvmRcUse
   # Load node version from nvmrc file.
   # If we applied the same version from another nvmrc file, it's not a problem.
   # We will reload the same version.
-  nvm use --silent
+  __nvm use --silent
 
   # Set nvmrc_applied to the current nvmrc file.
   set -g nvmrc_applied $__nvmrc_file
   # Set nvmrc_node_version to the current node version.
-  set -g nvmrc_node_version (nvm version)
+  set -g nvmrc_node_version (__nvm version)
+
+  if test $nvmrc_announce = "yes"
+    echo "nvmrc: Loaded node version $nvmrc_node_version"
+  end
 end
 
 # We need to run applyNvmRcUse on the initialization of each session.
@@ -68,8 +94,7 @@ if status is-interactive
   applyNvmRcUse
 end
 
-## nvmrc Function.
 # Activates on directory changes.
-function nvmrc --on-variable PWD -d "Automatic activation of NVM version from .nvmrc file."
+function __nvmrc --on-variable PWD
   applyNvmRcUse
 end

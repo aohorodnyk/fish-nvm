@@ -31,6 +31,13 @@ Fish NVM relies on the [Bass](https://github.com/edc/bass) package for optimum p
 fisher install edc/bass
 ```
 
+## Configuration
+
+Fish NVM is designed to work out of the box. However, you can customize its behavior by setting the following environment variables:
+
+* `nvmrc_enable` (default: `yes`): Enables or disables Fish NVM. Set to `no` to disable.
+* `nvmrc_announce` (default: `yes`): Enables or disables the announcement of the Node.js version change. Set to `no` to disable.
+
 ## Usage
 
 After successful installation, Fish NVM operates automatically. Whenever you navigate into a directory containing a `.nvmrc` file (either in the current directory or any parent directory), Fish NVM auto-detects and loads the required version of Node.js. If the required version isn't installed, Fish NVM initiates the installation process.

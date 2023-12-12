@@ -30,14 +30,28 @@ function applyNvmRcUse
     # No nvmrc file found.
     if test $nvmrc_applied != "N/A"
       # nvmrc was applied, but no nvmrc file found.
+
+      # We know that we will uset the variable.
+      set -g nvmrc_applied "N/A"
+
+      useDefaultNVMVersion
+      if test "$nvm_use_default_status" = "0"
+        return
+      end
+
       # Unload nvm.
       __nvm unload
-      set -g nvmrc_applied "N/A"
       set -g nvmrc_node_version "N/A"
 
       if test $nvmrc_announce = "yes"
         echo "nvmrc: Unloaded nvm."
       end
+
+      return
+    end
+
+    if test $nvmrc_node_version = "N/A"
+      useDefaultNVMVersion
     end
 
     return
@@ -49,7 +63,7 @@ function applyNvmRcUse
     return
   end
 
-  set -l __nvmrc_node_version (nvm version (cat $__nvmrc_file))
+  set -l __nvmrc_node_version (__nvm version (cat $__nvmrc_file))
   # nvmrc file found.
   if test $__nvmrc_node_version = "N/A"
     # nvmrc file specifies a version that nvm does not have installed.
@@ -76,6 +90,21 @@ function applyNvmRcUse
 
   if test $nvmrc_announce = "yes"
     echo "nvmrc: Loaded node version $nvmrc_node_version"
+  end
+end
+
+# Apply default node version, we do not want to install default version.
+function useDefaultNVMVersion
+  # Try to use default version.
+  __nvm use default --silent
+
+  set -g nvm_use_default_status $status
+  if test "$nvm_use_default_status" = "0"
+    # Default version is set.
+    set -g nvmrc_node_version (__nvm version)
+    if test $nvmrc_announce = "yes"
+      echo "nvmrc: Loaded default node version $nvmrc_node_version"
+    end
   end
 end
 

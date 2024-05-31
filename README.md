@@ -22,7 +22,7 @@ brew install nvm
 Once NVM is ready, install the Fish NVM package using [Fisher](fisher):
 
 ```sh
-fisher install aohorodnyk/fish-autovenv
+fisher install aohorodnyk/fish-nvm
 ```
 
 Fish NVM relies on the [Bass](https://github.com/edc/bass) package for optimum performance. Install it with Fisher:
